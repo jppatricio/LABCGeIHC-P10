@@ -25,7 +25,7 @@
 #include "Headers/FirstPersonCamera.h"
 //Texture includes
 #include "Headers/Texture.h"
-//Model includes
+//Model includes CHECK INCLUDE
 #include "Headers/Model.h"
 
 #define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
@@ -44,13 +44,18 @@ Shader shaderMateriales;
 Shader shaderDirectionLight;
 Shader shaderPointLight;
 Shader shaderSpotLight;
+// SHADER CON LAS MULTIPLES LUCES
 Shader shaderLighting;
 
+// EN CARPETA MODELS - 
+// MODELOS -http://www.assimp.org/
+// SE PUEDEN DESCARGAR DESDE: https://www.turbosquid.com/Search/3D-Models/free
 Model modelRock;
 Model modelRail;
 Model modelAirCraft;
 Model arturito;
 Model modelTrain;
+Model sillon;
 
 GLuint textureID1, textureID2, textureID3, textureCespedID, textureWaterID, textureCubeTexture;
 GLuint cubeTextureID;
@@ -153,17 +158,21 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderDirectionLight.initialize("../../Shaders/typeLight.vs", "../../Shaders/directionalLight.fs");
 	shaderPointLight.initialize("../../Shaders/typeLight.vs", "../../Shaders/pointLight.fs");
 	shaderSpotLight.initialize("../../Shaders/typeLight.vs", "../../Shaders/spotLight.fs");
+	// CHECK
 	shaderLighting.initialize("../../Shaders/typeLight.vs", "../../Shaders/multipleLights.fs");
 
 	sphere.init();
 	cylinder.init();
 	box.init();
-	box.scaleUVS(glm::vec2(100.0, 100.0));
+	box.scaleUVS(glm::vec2(100.0, 1000.0));//100x100 texturas repetidas CHECK
 	boxWater.init();
 	boxWater.scaleUVS(glm::vec2(1.0, 1.0));
+
+	// SE CARGAN LOS MODELOS CHECK
 	modelRock.loadModel("../../models/rock/rock.obj");
 	modelRail.loadModel("../../models/railroad/railroad_track.obj");
 	modelAirCraft.loadModel("../../models/Aircraft_obj/E 45 Aircraft_obj.obj");
+	sillon.loadModel("../../models/Lambo/Lamborghini_Aventador.obj");
 
 	camera->setPosition(glm::vec3(0.0f, 0.0f, 0.4f));
 	
@@ -380,6 +389,12 @@ void applicationLoop() {
 	float rotationAirCraft = 0.0;
 	bool finishRotation = true;
 
+	bool finishRotationFerrari = true;
+	int directionFerrari = 0;
+	float ferrariZ = 0.0;
+	float ferrariX = 0.0;
+	float rotationFerrari = 0.0;
+
 	while (psi) {
 		psi = processInput(true);
 
@@ -407,13 +422,13 @@ void applicationLoop() {
 		cylinder.render(cylinder.getSlices() * cylinder.getStacks() * 2 * 3 + cylinder.getSlices() * 3, cylinder.getSlices() * 3);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		shaderTexture.turnOff();
-		
+
 		cylinder.setShader(&shaderMateriales);
 		cylinder.setProjectionMatrix(projection);
 		cylinder.setViewMatrix(view);
 		cylinder.setPosition(glm::vec3(0.0, 0.0, 0.0));
 		cylinder.setScale(glm::vec3(1.0, 1.0, 1.0));
-		
+
 		// Iluminación
 		glm::mat4 lightModelmatrix = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(1.0f, 0.0f, 0.0f));
 		lightModelmatrix = glm::translate(lightModelmatrix, glm::vec3(0.0f, 0.0f, -ratio));
@@ -434,14 +449,15 @@ void applicationLoop() {
 		shaderLighting.turnOn();
 		glUniform3fv(shaderLighting.getUniformLocation("viewPos"), 1, glm::value_ptr(camera->getPosition()));
 		//Directional light
+		// SE ENVIAN LOS VALORES DE LAS COMPONENTES AMBIENTALES, DIFUASAS Y ESPECULARES
 		glUniform3f(shaderLighting.getUniformLocation("directionalLight.light.ambient"), 0.025, 0.025, 0.025);
 		glUniform3f(shaderLighting.getUniformLocation("directionalLight.light.diffuse"), 0.1, 0.1, 0.1);
 		glUniform3f(shaderLighting.getUniformLocation("directionalLight.light.specular"), 0.15, 0.15, 0.15);
 		glUniform3fv(shaderLighting.getUniformLocation("directionalLight.direction"), 1, glm::value_ptr(glm::vec3(0, -1.0, 0.0)));
 		//Numero de luces spot y point
 		int locCount = shaderLighting.getUniformLocation("pointLightCount");
-		glUniform1i(shaderLighting.getUniformLocation("pointLightCount"), 1);
-		glUniform1i(shaderLighting.getUniformLocation("spotLightCount"), 1);
+		glUniform1i(shaderLighting.getUniformLocation("pointLightCount"), 1);// numero de pointlights
+		glUniform1i(shaderLighting.getUniformLocation("spotLightCount"), 1);// numero de spotlights
 		// Point light
 		glUniform3fv(shaderLighting.getUniformLocation("pointLights[0].position"), 1, glm::value_ptr(glm::vec3(lightModelmatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))));
 		glUniform1f(shaderLighting.getUniformLocation("pointLights[0].constant"), 1.0f);
@@ -462,13 +478,20 @@ void applicationLoop() {
 		glUniform3f(shaderLighting.getUniformLocation("spotLights[0].light.diffuse"), 0.7, 0.2, 0.6);
 		glUniform3f(shaderLighting.getUniformLocation("spotLights[0].light.specular"), 0.1, 0.7, 0.8);
 		shaderLighting.turnOff();
-
+		// RENDERING MODELS::::::::::::::::::::::::::::::::::::::
 		modelRock.setShader(&shaderLighting);
 		modelRock.setProjectionMatrix(projection);
 		modelRock.setViewMatrix(view);
 		modelRock.setPosition(glm::vec3(5.0, 3.0, -20.0));
 		modelRock.setScale(glm::vec3(1.0, 1.0, 1.0));
 		modelRock.render();
+
+		sillon.setShader(&shaderLighting);
+		sillon.setProjectionMatrix(projection);
+		sillon.setViewMatrix(view);
+		sillon.setPosition(glm::vec3(0.0, 2.0, -2.0));
+		sillon.setScale(glm::vec3(0.01,0.01,0.01));
+		//sillon.render();
 
 		modelRail.setShader(&shaderLighting);
 		modelRail.setProjectionMatrix(projection);
@@ -481,19 +504,30 @@ void applicationLoop() {
 		modelAirCraft.setProjectionMatrix(projection);
 		modelAirCraft.setViewMatrix(view);
 		modelAirCraft.setScale(glm::vec3(1.0, 1.0, 1.0));
+
+		//ANIM SPACECRAFT
+		// LA VARIABLE aircraftZ es modificada mas adelante en cada ciclo de refrescamiento
 		glm::mat4 matrixAirCraft = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, aircraftZ));
 		matrixAirCraft = glm::translate(matrixAirCraft, glm::vec3(10.0, 2.0, 15.0));
 		matrixAirCraft = glm::rotate(matrixAirCraft, rotationAirCraft, glm::vec3(0, 1, 0));
-		modelAirCraft.render(matrixAirCraft);
 
-		/*arturito.setShader(&shaderLighting);
+		//ANIM SILLON ( FERRARI )
+		// LA VARIABLE ferrariX y ferrariZ son modificadas mas adelante en cada ciclo de refrescamiento
+		glm::mat4 matrixFerrari = glm::translate(glm::mat4(1.0f), glm::vec3(ferrariX, 0.0, ferrariZ));
+		matrixFerrari = glm::translate(matrixFerrari, glm::vec3(10.0, 2.0, 15.0));
+		matrixFerrari = glm::rotate(matrixFerrari, rotationFerrari + glm::radians(90.0f), glm::vec3(0, 1, 0));
+
+		modelAirCraft.render(matrixAirCraft);
+		sillon.render(matrixFerrari);
+
+		arturito.setShader(&shaderLighting);
 		arturito.setProjectionMatrix(projection);
 		arturito.setViewMatrix(view);
 		arturito.setScale(glm::vec3(1.0, 1.0, 1.0));
 		glm::mat4 matrixArturito = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, aircraftZ));
 		matrixArturito = glm::translate(matrixArturito, glm::vec3(-10.0, 2.0, 15.0));
 		matrixArturito = glm::rotate(matrixArturito, rotationAirCraft, glm::vec3(0, 1, 0));
-		arturito.render(matrixArturito);*/
+		arturito.render(matrixArturito);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textureCespedID);
@@ -511,7 +545,8 @@ void applicationLoop() {
 		boxWater.setViewMatrix(view);
 		boxWater.setPosition(glm::vec3(3.0, 2.0, -5.0));
 		boxWater.setScale(glm::vec3(10.0, 0.001, 10.0));
-		boxWater.offsetUVS(glm::vec2(0.0001, 0.0001));
+		// CHECK OFFSET A LA TEXTURA EN X y Y
+		boxWater.offsetUVS(glm::vec2(0.001, 0.000));
 		boxWater.render();
 
 		if (angle > 2 * M_PI)
@@ -547,35 +582,102 @@ void applicationLoop() {
 		glDepthFunc(oldDepthFuncMode);
 		shaderCubeTexture.turnOff();
 
-		if (finishRotation) {
-			if (direcionAirCraft)
+
+		// LA ANIMACION---------------
+		if (finishRotation) {// si la rotacion ha concluido, comenzamos a mover la nave
+			if (direcionAirCraft)// depende de hacia donde esté viendo la nave
 				aircraftZ -= 0.01;
 			else
 				aircraftZ += 0.01;
 			if (direcionAirCraft && aircraftZ < -6.0) {
-				direcionAirCraft = false;
-				finishRotation = false;
+				direcionAirCraft = false;// Cambiamos la direccion
+				finishRotation = false; // Iniciamos con la rotacion
 				aircraftZ = -6.0;
 			}if (!direcionAirCraft && aircraftZ > 6.0) {
-				direcionAirCraft = true;
-				finishRotation = false;
+				direcionAirCraft = true;// Cambiamos la direccion
+				finishRotation = false;// Iniciamos con la rotacion
 				aircraftZ = 6.0;
 			}
 		}
 		else {
-			rotationAirCraft += 0.01;
-			if (!direcionAirCraft) {
+			rotationAirCraft += 0.01;// rotamos
+			if (!direcionAirCraft) {// Depende de la direccion objetivo
 				if (rotationAirCraft > glm::radians(180.0f)) {
-					finishRotation = true;
+					finishRotation = true; // Continuamos con mover la nave
 					rotationAirCraft = glm::radians(180.0f);
 				}
 			}
 			else {
 				if (rotationAirCraft > glm::radians(360.0f)) {
-					finishRotation = true;
+					finishRotation = true;// Continuamos con mover la nave
 					rotationAirCraft = glm::radians(0.0f);
 				}
 			}
+		}
+
+		// LA ANIMACION FERRARI---------------
+
+		if (finishRotationFerrari) {// si la rotacion ha concluido, comenzamos a mover el coche
+			if (directionFerrari == 0) {// depende de hacia donde esté viendo el coche
+				ferrariZ -= 0.01;
+				if (ferrariZ < -6.0) {
+					directionFerrari = 1;// Cambiamos la direccion
+					finishRotationFerrari = false; // Iniciamos con la rotacion
+					ferrariZ = -6.0;
+				}
+			}
+			else if (directionFerrari == 1) {
+				ferrariX -= 0.01;
+				if (ferrariX < -6.0) {
+					directionFerrari = 2;// Cambiamos la direccion
+					finishRotationFerrari = false; // Iniciamos con la rotacion
+					ferrariX = -6.0;
+				}
+			}
+			else if (directionFerrari == 2) {// depende de hacia donde esté viendo el coche
+				ferrariZ += 0.01;
+				if (ferrariZ > 6.0) {
+					directionFerrari = 3;// Cambiamos la direccion
+					finishRotationFerrari = false; // Iniciamos con la rotacion
+					ferrariZ = 6.0;
+				}
+			}
+			else if (directionFerrari == 3) {
+				ferrariX += 0.01;
+				if ( ferrariX > 6.0) {
+					directionFerrari = 0;// Cambiamos la direccion
+					finishRotationFerrari = false; // Iniciamos con la rotacion
+					ferrariX = 6.0;
+				}
+			
+			}
+		}
+			else {
+					rotationFerrari += 0.01;// rotamos
+					if (directionFerrari == 0) {// Depende de la direccion objetivo
+						if (rotationFerrari > glm::radians(90.0f)) {
+							finishRotationFerrari = true; // Continuamos con mover el coche
+							rotationFerrari = glm::radians(90.0f);
+						}
+					}
+					else if (directionFerrari == 1) {
+						if (rotationFerrari > glm::radians(180.0f)) {
+							finishRotationFerrari = true; //  Continuamos con mover el coche
+							rotationFerrari = glm::radians(180.0f);
+						}
+					}
+					else if (directionFerrari == 2) {
+						if (rotationFerrari > glm::radians(270.0f)) {
+							finishRotationFerrari = true; // Continuamos con mover el coche
+							rotationFerrari = glm::radians(270.0f);
+						}
+					}
+					else if (directionFerrari == 3) {
+						if (rotationFerrari > glm::radians(360.0f)) {
+							finishRotationFerrari = true; // Continuamos con mover el coche
+							rotationFerrari = glm::radians(360.0f);
+						}
+					}
 		}
 
 		glfwSwapBuffers(window);

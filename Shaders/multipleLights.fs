@@ -36,7 +36,7 @@ struct  SpotLight{
 
 };
 
-const int MAX_POINT_LIGHTS = 3;
+const int MAX_POINT_LIGHTS = 3; // CHECK MAXIMAS LUCES
 const int MAX_SPOT_LIGHTS = 5;
 
 out vec4 color;
@@ -48,8 +48,9 @@ in vec2 our_uv;
 uniform int pointLightCount;
 uniform int spotLightCount;
 
-uniform DirectionalLight directionalLight;
-uniform PointLight pointLights[MAX_POINT_LIGHTS];
+// CHECK SE DEFINEN LAS 3 DIFERENTES LUCES Y DOS CON ARREGLOS PARA PODER TENER VARIOS
+uniform DirectionalLight directionalLight;// LUZ SOL
+uniform PointLight pointLights[MAX_POINT_LIGHTS];// ARREGLOS
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 
 uniform vec3 viewPos;  
